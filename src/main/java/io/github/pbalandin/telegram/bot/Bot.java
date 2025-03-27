@@ -1,5 +1,6 @@
 package io.github.pbalandin.telegram.bot;
 
+import io.github.pbalandin.telegram.bot.processor.Dispatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -10,14 +11,17 @@ public class Bot extends TelegramLongPollingBot {
     private final String username;
     private final String token;
 
-    public Bot(String username, String token) {
+    private final Dispatcher dispatcher;
+
+    public Bot(String username, String token, Dispatcher dispatcher) {
         this.username = username;
         this.token = token;
+        this.dispatcher = dispatcher;
     }
 
     @Override
     public void onUpdateReceived(Update update) {
-        log.info("Received update: {}", update.getMessage().getText());
+        dispatcher.dispatch(update);
     }
 
     @Override
