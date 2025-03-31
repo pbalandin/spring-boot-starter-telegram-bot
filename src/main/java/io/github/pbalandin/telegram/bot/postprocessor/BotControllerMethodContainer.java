@@ -1,6 +1,6 @@
-package io.github.pbalandin.telegram.bot.bpp;
+package io.github.pbalandin.telegram.bot.postprocessor;
 
-import io.github.pbalandin.telegram.bot.annotation.BotMapping;
+import io.github.pbalandin.telegram.bot.api.annotation.BotMapping;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

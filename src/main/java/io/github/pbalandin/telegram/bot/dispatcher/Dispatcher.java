@@ -1,4 +1,4 @@
-package io.github.pbalandin.telegram.bot.processor;
+package io.github.pbalandin.telegram.bot.dispatcher;
 
 import org.telegram.telegrambots.meta.api.objects.Update;
 

@@ -1,4 +1,4 @@
-package io.github.pbalandin.telegram.bot.annotation;
+package io.github.pbalandin.telegram.bot.api.annotation;
 
 import org.springframework.stereotype.Component;
 

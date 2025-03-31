@@ -1,4 +1,4 @@
-package io.github.pbalandin.telegram.bot.bpp;
+package io.github.pbalandin.telegram.bot.postprocessor;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

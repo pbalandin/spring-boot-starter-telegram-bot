@@ -1,11 +1,12 @@
 package io.github.pbalandin.telegram.bot;
 
-import io.github.pbalandin.telegram.bot.processor.Dispatcher;
+import io.github.pbalandin.telegram.bot.dispatcher.Dispatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Lazy;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
@@ -18,7 +19,7 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 public class BotConfiguration {
 
     @Bean
-    public Bot bot(BotConfigurationProperties properties, Dispatcher dispatcher) {
+    public Bot bot(BotConfigurationProperties properties, @Lazy Dispatcher dispatcher) {
         return new Bot(properties.username(), properties.token(), dispatcher);
     }
 
@@ -29,6 +30,4 @@ public class BotConfiguration {
         log.info("Registered Telegram bot: {}", bot.getBotUsername());
         return api;
     }
-
-
 }

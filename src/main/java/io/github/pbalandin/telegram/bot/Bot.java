@@ -1,6 +1,6 @@
 package io.github.pbalandin.telegram.bot;
 
-import io.github.pbalandin.telegram.bot.processor.Dispatcher;
+import io.github.pbalandin.telegram.bot.dispatcher.Dispatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;

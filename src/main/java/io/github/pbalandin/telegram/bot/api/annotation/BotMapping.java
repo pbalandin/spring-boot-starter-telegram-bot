@@ -1,4 +1,4 @@
-package io.github.pbalandin.telegram.bot.annotation;
+package io.github.pbalandin.telegram.bot.api.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
