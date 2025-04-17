@@ -4,6 +4,8 @@ import io.github.pbalandin.telegram.bot.Bot;
 import io.github.pbalandin.telegram.bot.api.BotResponse;
 import io.github.pbalandin.telegram.bot.postprocessor.BotControllerMethod;
 import io.github.pbalandin.telegram.bot.postprocessor.BotControllerMethodContainer;
+import io.github.pbalandin.telegram.bot.session.SessionService;
+import io.github.pbalandin.telegram.bot.session.UserSession;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,11 +20,13 @@ public class BotDispatcher implements Dispatcher {
 
     private final BotControllerMethodContainer container;
     private final Bot bot;
+    private final SessionService sessionService;
 
 
-    public BotDispatcher(BotControllerMethodContainer container, Bot bot) {
+    public BotDispatcher(BotControllerMethodContainer container, Bot bot, SessionService sessionService) {
         this.container = container;
         this.bot = bot;
+        this.sessionService = sessionService;
     }
 
     @Override
@@ -42,17 +46,22 @@ public class BotDispatcher implements Dispatcher {
     }
 
     private void processCommand(String command, Update update, String chatId) throws ReflectiveOperationException {
-        Optional<BotControllerMethod> methodOpt = container.getMethod(command);
+        UserSession session = sessionService.getSession(Long.valueOf(chatId));
+
+        Optional<BotControllerMethod> methodOpt = container.getMethod(command, session.getLastCommand());
         if (methodOpt.isPresent()) {
             BotControllerMethod method = methodOpt.get();
             Object result = method.getMethod().invoke(method.getBean(), update);
 
             if (result instanceof BotResponse<?> response) {
                 sendResponse(response, chatId);
+            } else if (result == null) {
+
             } else {
                 throw new UnsupportedOperationException("Unsupported response type: " + result.getClass());
             }
 
+            sessionService.update(Long.valueOf(chatId), method.getMethod().getName());
         }
     }
 

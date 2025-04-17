@@ -1,7 +1,7 @@
 package io.github.pbalandin.telegram.bot.postprocessor;
 
-import io.github.pbalandin.telegram.bot.api.annotation.BotController;
-import io.github.pbalandin.telegram.bot.api.annotation.BotMapping;
+import io.github.pbalandin.telegram.bot.api.annotation.Handler;
+import io.github.pbalandin.telegram.bot.api.annotation.Command;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -27,9 +27,9 @@ public class BotControllerBeanPostProcessor implements BeanPostProcessor {
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         Class<?> targetClass = AopUtils.getTargetClass(bean);
-        if (AnnotationUtils.findAnnotation(targetClass, BotController.class) != null) {
+        if (AnnotationUtils.findAnnotation(targetClass, Handler.class) != null) {
             for (Method method : targetClass.getDeclaredMethods()) {
-                BotMapping mapping = AnnotationUtils.findAnnotation(method, BotMapping.class);
+                Command mapping = AnnotationUtils.findAnnotation(method, Command.class);
                 if (mapping != null) {
                     container.registerControllerMethod(bean, method);
                 }
