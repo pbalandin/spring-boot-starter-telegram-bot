@@ -2,8 +2,10 @@ package io.github.pbalandin.telegram.bot.dispatcher;
 
 import io.github.pbalandin.telegram.bot.Bot;
 import io.github.pbalandin.telegram.bot.api.BotResponse;
+import io.github.pbalandin.telegram.bot.api.Type;
 import io.github.pbalandin.telegram.bot.postprocessor.BotControllerMethod;
 import io.github.pbalandin.telegram.bot.postprocessor.BotControllerMethodContainer;
+import io.github.pbalandin.telegram.bot.postprocessor.update.UpdateResolver;
 import io.github.pbalandin.telegram.bot.session.SessionService;
 import io.github.pbalandin.telegram.bot.session.UserSession;
 import lombok.SneakyThrows;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.*;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -21,47 +24,47 @@ public class BotDispatcher implements Dispatcher {
     private final BotControllerMethodContainer container;
     private final Bot bot;
     private final SessionService sessionService;
+    private final List<UpdateResolver> updateResolvers;
 
 
-    public BotDispatcher(BotControllerMethodContainer container, Bot bot, SessionService sessionService) {
+    public BotDispatcher(BotControllerMethodContainer container, Bot bot, SessionService sessionService, List<UpdateResolver> updateResolvers) {
         this.container = container;
         this.bot = bot;
         this.sessionService = sessionService;
+        this.updateResolvers = updateResolvers;
     }
 
     @Override
     public void dispatch(Update update) {
-        try {
-            if (update.hasMessage() && update.getMessage().hasText()) {
-                String command = update.getMessage().getText();
-                processCommand(command, update, update.getMessage().getChatId().toString());
-            } else if (update.hasCallbackQuery()) {
-                String command = update.getCallbackQuery().getData();
-                processCommand(command, update, update.getCallbackQuery().getMessage().getChatId().toString());
-            }
-        } catch (Exception e) {
-            log.error("Error dispatching update: {}", update);
-            throw new RuntimeException("Error dispatching update", e);
-        }
+        UpdateResolver resolver = updateResolvers.stream()
+                .filter(it -> it.isApplicable(update))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("No suitable update resolver found"));
+
+        processCommand(update, resolver);
     }
 
-    private void processCommand(String command, Update update, String chatId) throws ReflectiveOperationException {
-        UserSession session = sessionService.getSession(Long.valueOf(chatId));
+    @SneakyThrows
+    private void processCommand(Update update, UpdateResolver updateResolver) {
+        Long chatId = updateResolver.getChatId(update);
+        String command = updateResolver.getMessage(update);
+        Type type = updateResolver.getMessageType(update);
+        UserSession session = sessionService.getSession(chatId);
 
-        Optional<BotControllerMethod> methodOpt = container.getMethod(command, session.getLastCommand());
+        Optional<BotControllerMethod> methodOpt = container.getMethod(command, type, session.getLastCommand());
         if (methodOpt.isPresent()) {
             BotControllerMethod method = methodOpt.get();
             Object result = method.getMethod().invoke(method.getBean(), update);
 
             if (result instanceof BotResponse<?> response) {
-                sendResponse(response, chatId);
+                sendResponse(response, chatId.toString());
             } else if (result == null) {
 
             } else {
                 throw new UnsupportedOperationException("Unsupported response type: " + result.getClass());
             }
 
-            sessionService.update(Long.valueOf(chatId), method.getMethod().getName());
+            sessionService.update(chatId, method.getMethod().getName());
         }
     }
 
