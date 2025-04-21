@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class UserSession {
-    private @NonNull Long chatId;
+public class TelegramSession {
+    private @NonNull Long id;
     private @NonNull String lastCommand;
 }

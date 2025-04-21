@@ -7,7 +7,7 @@ import io.github.pbalandin.telegram.bot.postprocessor.BotControllerMethod;
 import io.github.pbalandin.telegram.bot.postprocessor.BotControllerMethodContainer;
 import io.github.pbalandin.telegram.bot.postprocessor.update.UpdateResolver;
 import io.github.pbalandin.telegram.bot.session.SessionService;
-import io.github.pbalandin.telegram.bot.session.UserSession;
+import io.github.pbalandin.telegram.bot.session.TelegramSession;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,6 +17,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.util.List;
 import java.util.Optional;
 
+
 @Slf4j
 @Component
 public class BotDispatcher implements Dispatcher {
@@ -25,13 +26,15 @@ public class BotDispatcher implements Dispatcher {
     private final Bot bot;
     private final SessionService sessionService;
     private final List<UpdateResolver> updateResolvers;
+    private final MethodArgumentResolver methodArgumentResolver;
 
 
-    public BotDispatcher(BotControllerMethodContainer container, Bot bot, SessionService sessionService, List<UpdateResolver> updateResolvers) {
+    public BotDispatcher(BotControllerMethodContainer container, Bot bot, SessionService sessionService, List<UpdateResolver> updateResolvers, MethodArgumentResolver methodArgumentResolver) {
         this.container = container;
         this.bot = bot;
         this.sessionService = sessionService;
         this.updateResolvers = updateResolvers;
+        this.methodArgumentResolver = methodArgumentResolver;
     }
 
     @Override
@@ -47,14 +50,15 @@ public class BotDispatcher implements Dispatcher {
     @SneakyThrows
     private void processCommand(Update update, UpdateResolver updateResolver) {
         Long chatId = updateResolver.getChatId(update);
-        String command = updateResolver.getMessage(update);
+        String command = updateResolver.getText(update);
         Type type = updateResolver.getMessageType(update);
-        UserSession session = sessionService.getSession(chatId);
+        TelegramSession session = sessionService.getSession(chatId);
 
         Optional<BotControllerMethod> methodOpt = container.getMethod(command, type, session.getLastCommand());
         if (methodOpt.isPresent()) {
             BotControllerMethod method = methodOpt.get();
-            Object result = method.getMethod().invoke(method.getBean(), update);
+            Object[] args = methodArgumentResolver.resolveMethodArguments(method, update, updateResolver);
+            Object result = method.getMethod().invoke(method.getBean(), args);
 
             if (result instanceof BotResponse<?> response) {
                 sendResponse(response, chatId.toString());

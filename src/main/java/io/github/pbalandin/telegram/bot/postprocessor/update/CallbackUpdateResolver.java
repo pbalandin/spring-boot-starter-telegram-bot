@@ -3,7 +3,11 @@ package io.github.pbalandin.telegram.bot.postprocessor.update;
 import io.github.pbalandin.telegram.bot.api.Type;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.*;
+import org.telegram.telegrambots.meta.api.objects.games.Animation;
+import org.telegram.telegrambots.meta.api.objects.polls.Poll;
+
+import java.util.List;
 
 @Component
 public class CallbackUpdateResolver implements UpdateResolver {
@@ -18,8 +22,58 @@ public class CallbackUpdateResolver implements UpdateResolver {
     }
 
     @Override
-    public String getMessage(Update update) {
+    public Chat getChat(Update update) {
+        return update.getCallbackQuery().getMessage().getChat();
+    }
+
+    @Override
+    public Message getMessage(Update update) {
+        return update.getCallbackQuery().getMessage();
+    }
+
+    @Override
+    public String getText(Update update) {
         return StringUtils.defaultString(update.getCallbackQuery().getData());
+    }
+
+    @Override
+    public List<PhotoSize> getPhotos(Update update) {
+        return update.getCallbackQuery().getMessage().getPhoto();
+    }
+
+    @Override
+    public Video getVideo(Update update) {
+        return update.getCallbackQuery().getMessage().getVideo();
+    }
+
+    @Override
+    public Animation getAnimation(Update update) {
+        return update.getCallbackQuery().getMessage().getAnimation();
+    }
+
+    @Override
+    public Voice getVoice(Update update) {
+        return update.getCallbackQuery().getMessage().getVoice();
+    }
+
+    @Override
+    public VideoNote getVideoNote(Update update) {
+        return update.getCallbackQuery().getMessage().getVideoNote();
+    }
+
+    @Override
+    public Contact getContact(Update update) {
+        return update.getCallbackQuery().getMessage().getContact();
+    }
+
+    @Override
+    public Location getLocation(Update update) {
+        return update.getCallbackQuery().getMessage().getLocation();
+    }
+
+    @Override
+    public Poll getPoll(Update update) {
+        return update.getCallbackQuery().getMessage().getPoll();
     }
 
     @Override

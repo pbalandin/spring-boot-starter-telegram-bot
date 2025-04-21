@@ -11,19 +11,19 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Service
 public class SessionService {
-    private final Map<Long, UserSession> userSessionMap = new ConcurrentHashMap<>();
+    private final Map<Long, TelegramSession> userSessionMap = new ConcurrentHashMap<>();
 
-    public UserSession getSession(@NonNull Long chatId) {
-        return userSessionMap.computeIfAbsent(chatId, k -> create(chatId));
+    public TelegramSession getSession(@NonNull Long id) {
+        return userSessionMap.computeIfAbsent(id, k -> create(id));
     }
 
-    public UserSession update(@NonNull Long chatId, @NonNull String method) {
-        UserSession updatedSession = new UserSession(chatId, method);
-        userSessionMap.put(chatId, updatedSession);
+    public TelegramSession update(@NonNull Long id, @NonNull String method) {
+        TelegramSession updatedSession = new TelegramSession(id, method);
+        userSessionMap.put(id, updatedSession);
         return updatedSession;
     }
 
-    private UserSession create(@NonNull Long chatId) {
-        return new UserSession(chatId, StringUtils.EMPTY);
+    private TelegramSession create(@NonNull Long id) {
+        return new TelegramSession(id, StringUtils.EMPTY);
     }
 }
