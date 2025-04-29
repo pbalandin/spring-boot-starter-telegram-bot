@@ -1,7 +1,8 @@
 package io.github.pbalandin.telegram.bot.postprocessor;
 
-import io.github.pbalandin.telegram.bot.api.annotation.Command;
 import io.github.pbalandin.telegram.bot.api.Type;
+import io.github.pbalandin.telegram.bot.api.annotation.Command;
+import io.github.pbalandin.telegram.bot.dispatcher.CommandResolver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -16,10 +17,17 @@ public class BotControllerMethodContainer {
 
     private final Map<String, BotControllerMethod> methods = new HashMap<>();
 
+    private final CommandResolver commandResolver;
+
+    public BotControllerMethodContainer(CommandResolver commandResolver) {
+        this.commandResolver = commandResolver;
+    }
+
     //TODO Check if possible to create separate beans for this methods
     public BotControllerMethod registerControllerMethod(Object bean, Method method) {
         Command mapping = method.getAnnotation(Command.class);
-        BotControllerMethod controllerMethod = new BotControllerMethod(mapping.value(), mapping.type(), bean, method, mapping.after());
+        String command = commandResolver.resolveCommand(mapping.value());
+        BotControllerMethod controllerMethod = new BotControllerMethod(command, mapping.type(), bean, method, mapping.after());
         methods.put(method.getName(), controllerMethod);
         return controllerMethod;
     }

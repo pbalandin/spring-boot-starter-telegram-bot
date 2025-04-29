@@ -27,14 +27,16 @@ public class BotDispatcher implements Dispatcher {
     private final SessionService sessionService;
     private final List<UpdateResolver> updateResolvers;
     private final MethodArgumentResolver methodArgumentResolver;
+    private final CommandResolver commandResolver;
 
 
-    public BotDispatcher(BotControllerMethodContainer container, Bot bot, SessionService sessionService, List<UpdateResolver> updateResolvers, MethodArgumentResolver methodArgumentResolver) {
+    public BotDispatcher(BotControllerMethodContainer container, Bot bot, SessionService sessionService, List<UpdateResolver> updateResolvers, MethodArgumentResolver methodArgumentResolver, CommandResolver commandResolver) {
         this.container = container;
         this.bot = bot;
         this.sessionService = sessionService;
         this.updateResolvers = updateResolvers;
         this.methodArgumentResolver = methodArgumentResolver;
+        this.commandResolver = commandResolver;
     }
 
     @Override
@@ -50,7 +52,8 @@ public class BotDispatcher implements Dispatcher {
     @SneakyThrows
     private void processCommand(Update update, UpdateResolver updateResolver) {
         Long chatId = updateResolver.getChatId(update);
-        String command = updateResolver.getText(update);
+        String rawCommand = updateResolver.getText(update);
+        String command = commandResolver.resolveCommand(rawCommand);
         Type type = updateResolver.getMessageType(update);
         TelegramSession session = sessionService.getSession(chatId);
 
