@@ -1,9 +1,11 @@
 package io.github.pbalandin.telegram.bot.dispatcher;
 
+import io.github.pbalandin.telegram.bot.api.annotation.CommandParam;
 import io.github.pbalandin.telegram.bot.postprocessor.BotControllerMethod;
 import io.github.pbalandin.telegram.bot.postprocessor.update.UpdateResolver;
 import io.github.pbalandin.telegram.bot.session.SessionService;
 import io.github.pbalandin.telegram.bot.session.TelegramSession;
+import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
@@ -12,6 +14,8 @@ import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class MethodArgumentResolver {
@@ -23,12 +27,34 @@ public class MethodArgumentResolver {
     }
 
     public Object[] resolveMethodArguments(BotControllerMethod method, Update update, UpdateResolver resolver) {
-        Class<?>[] parameterTypes = method.getMethod().getParameterTypes();
-        Object[] args = new Object[parameterTypes.length];
+        MethodParameter[] methodParameters = method.getMethodParameters();
+        Object[] args = new Object[methodParameters.length];
 
-        for (int i = 0; i < parameterTypes.length; i++) {
-            Class<?> paramType = parameterTypes[i];
-            if (Update.class.isAssignableFrom(paramType)) {
+        for (int i = 0; i < methodParameters.length; i++) {
+            MethodParameter parameter = methodParameters[i];
+            Class<?> paramType = parameter.getParameterType();
+
+            CommandParam pathVariable = parameter.getParameterAnnotation(CommandParam.class);
+            if (pathVariable != null) {
+                int group = pathVariable.value();
+                String pattern = method.getCommand();
+                String text = resolver.getText(update);
+                String value = extractCommandParam(text, Pattern.compile(pattern), group);
+
+                if (String.class.isAssignableFrom(paramType)) {
+                    args[i] = value;
+                } else if (Long.class.isAssignableFrom(paramType) || long.class.isAssignableFrom(paramType)) {
+                    args[i] = Long.valueOf(value);
+                } else if (Integer.class.isAssignableFrom(paramType) || int.class.isAssignableFrom(paramType)) {
+                    args[i] = Integer.valueOf(value);
+                } else if (Double.class.isAssignableFrom(paramType) || double.class.isAssignableFrom(paramType)) {
+                    args[i] = Double.valueOf(value);
+                } else if (Boolean.class.isAssignableFrom(paramType) || boolean.class.isAssignableFrom(paramType)) {
+                    args[i] = Boolean.valueOf(value);
+                } else {
+                    throw new IllegalArgumentException("Unsupported parameter type for path variable: " + paramType.getName());
+                }
+            } else if (Update.class.isAssignableFrom(paramType)) {
                 args[i] = update;
             } else if (Message.class.isAssignableFrom(paramType)) {
                 args[i] = resolver.getMessage(update);
@@ -73,5 +99,13 @@ public class MethodArgumentResolver {
             }
         }
         return args;
+    }
+
+    private String extractCommandParam(String input, Pattern pattern, int group) {
+        Matcher matcher = pattern.matcher(input);
+        if (!matcher.find()) {
+            throw new IllegalArgumentException("No match found for pattern [" + pattern.pattern() + "] in input [" + input + "]");
+        }
+        return matcher.group(group);
     }
 }
