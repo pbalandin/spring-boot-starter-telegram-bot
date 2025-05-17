@@ -11,7 +11,10 @@ import io.github.pbalandin.telegram.bot.session.TelegramSession;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.polls.SendPoll;
+import org.telegram.telegrambots.meta.api.methods.polls.StopPoll;
 import org.telegram.telegrambots.meta.api.methods.send.*;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.*;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
@@ -64,7 +67,7 @@ public class BotDispatcher implements Dispatcher {
             Object result = method.getMethod().invoke(method.getBean(), args);
 
             if (result instanceof BotResponse<?> response) {
-                sendResponse(response, chatId.toString());
+                sendResponse(response);
             } else if (result == null) {
 
             } else {
@@ -75,35 +78,57 @@ public class BotDispatcher implements Dispatcher {
         }
     }
 
-
-    //TODO add other types of responses
     @SneakyThrows
-    private void sendResponse(BotResponse<?> response, String chatId) {
+    private void sendResponse(BotResponse<?> response) {
         var method = response.body();
         if (method instanceof SendMessage sendMessages) {
-            sendMessages.setChatId(chatId);
             bot.execute(sendMessages);
         } else if (method instanceof SendPhoto sendPhoto) {
-            sendPhoto.setChatId(chatId);
             bot.execute(sendPhoto);
         } else if (method instanceof SendVideo sendVideo) {
-            sendVideo.setChatId(chatId);
             bot.execute(sendVideo);
         } else if (method instanceof SendAudio sendAudio) {
-            sendAudio.setChatId(chatId);
             bot.execute(sendAudio);
         } else if (method instanceof SendAnimation sendAnimation) {
-            sendAnimation.setChatId(chatId);
             bot.execute(sendAnimation);
         } else if (method instanceof SendDocument sendDocument) {
-            sendDocument.setChatId(chatId);
             bot.execute(sendDocument);
         } else if (method instanceof SendVoice sendVoice) {
-            sendVoice.setChatId(chatId);
             bot.execute(sendVoice);
         } else if (method instanceof SendSticker sendSticker) {
-            sendSticker.setChatId(chatId);
             bot.execute(sendSticker);
+        } else if (method instanceof EditMessageText editMessageText) {
+            bot.execute(editMessageText);
+        } else if (method instanceof EditMessageReplyMarkup editMessageReplyMarkup) {
+            bot.execute(editMessageReplyMarkup);
+        } else if (method instanceof EditMessageLiveLocation editMessageLiveLocation) {
+            bot.execute(editMessageLiveLocation);
+        } else if (method instanceof EditMessageCaption editMessageCaption) {
+            bot.execute(editMessageCaption);
+        } else if (method instanceof EditMessageMedia editMessageMedia) {
+            bot.execute(editMessageMedia);
+        } else if (method instanceof DeleteMessage deleteMessage) {
+            bot.execute(deleteMessage);
+        } else if (method instanceof SendChatAction sendChatAction) {
+            bot.execute(sendChatAction);
+        } else if (method instanceof SendContact sendContact) {
+            bot.execute(sendContact);
+        } else if (method instanceof SendDice sendDice) {
+            bot.execute(sendDice);
+        } else if (method instanceof SendGame sendGame) {
+            bot.execute(sendGame);
+        } else if (method instanceof SendLocation sendLocation) {
+            bot.execute(sendLocation);
+        } else if (method instanceof SendMediaGroup sendMediaGroup) {
+            bot.execute(sendMediaGroup);
+        } else if (method instanceof SendVenue sendVenue) {
+            bot.execute(sendVenue);
+        } else if (method instanceof SendVideoNote sendVideoNote) {
+            bot.execute(sendVideoNote);
+        } else if (method instanceof SendPoll sendPoll) {
+            bot.execute(sendPoll);
+        } else if (method instanceof StopPoll stopPoll) {
+            bot.execute(stopPoll);
         } else {
             throw new UnsupportedOperationException("Unsupported partial method type: " + method.getClass().getName());
         }
