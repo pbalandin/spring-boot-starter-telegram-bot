@@ -11,7 +11,7 @@
 
     <groupId>io.github.pbalandin</groupId>
     <artifactId>spring-boot-starter-telegram-bot</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.3</version>
 
     <name>spring-boot-starter-telegram-bot</name>
     <description>Spring Boot starter for TelegramBots library</description>
