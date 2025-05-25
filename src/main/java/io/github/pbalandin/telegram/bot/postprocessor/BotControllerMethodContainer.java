@@ -27,13 +27,14 @@ public class BotControllerMethodContainer {
     public BotControllerMethod registerControllerMethod(Object bean, Method method) {
         Command mapping = method.getAnnotation(Command.class);
         String command = commandResolver.resolveCommand(mapping.value());
-        BotControllerMethod controllerMethod = new BotControllerMethod(command, mapping.type(), bean, method, mapping.after());
+        BotControllerMethod controllerMethod = new BotControllerMethod(command, mapping.type(), bean, method, mapping.after(), mapping.order());
         methods.put(method.getName(), controllerMethod);
         return controllerMethod;
     }
 
     public Optional<BotControllerMethod> getMethod(String command, Type type, String previousName) {
         return methods.entrySet().stream()
+                .sorted(new BotControllerMethodComparator())
                 .filter(entry -> command.matches(entry.getValue().getCommand()) && entry.getValue().getType().equals(type))
                 .filter(entry -> entry.getValue().getAfterCommand().isEmpty() || previousName.matches(entry.getValue().getAfterCommand()))
                 .findFirst()

@@ -21,13 +21,15 @@ public class BotControllerMethod {
     private final @NonNull Method method;
     private final MethodParameter[] methodParameters;
     private final String afterCommand;
+    private final int order;
 
-    public BotControllerMethod(@NonNull String command, @NonNull Type type, @NonNull Object bean, @NonNull Method method, String afterCommand) {
+    public BotControllerMethod(@NonNull String command, @NonNull Type type, @NonNull Object bean, @NonNull Method method, String afterCommand, int order) {
         this.command = command;
         this.type = type;
         this.bean = bean;
         this.beanType = ClassUtils.getUserClass(bean);
         this.method = method;
+        this.order = order;
         this.methodParameters = initMethodParameters();
         this.afterCommand = afterCommand;
     }

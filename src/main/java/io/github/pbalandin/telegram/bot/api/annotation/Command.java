@@ -15,4 +15,6 @@ public @interface Command {
     String after() default "";
 
     Type type() default Type.TEXT;
+
+    int order() default Integer.MAX_VALUE;
 }
